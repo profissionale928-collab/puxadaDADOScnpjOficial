@@ -237,7 +237,7 @@ function exportManychatContacts() {
         const razaoCurta = razaoLimpa.substring(0, 30);
 
         // Mensagem personalizada com Razão Social e ID único
-        const mensagem = `Suporte BR: Ola ${razaoCurta}, sua solicitacao esta em analise.\nAcompanhe o Status em:\nhttps://link.com.br/${cnpjDigits}\nPara sair, responda SAIR. Ref:${uniqueId}`;
+        const mensagem = `Suporte BR: Ola ${razaoCurta}, sua solicitacao esta em analise.\nAcompanhe o Status em:\nhttps://meuservicomei.com.br/${cnpjDigits}\nPara sair, responda SAIR. Ref:${uniqueId}`;
 
         return [
             `"${telefoneRaw}"`, 
