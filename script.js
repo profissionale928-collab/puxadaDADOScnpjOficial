@@ -57,7 +57,7 @@ async function handleSearch(e) {
             'founded.gte': dataInicioISO,
             'founded.lte': dataFimISO,
             'company.simei.optant.eq': 'true', // Filtro MEI reativado
-            'limit': '100' // Aumentado o limite para buscar mais resultados
+            'limit': '200' // Aumentado o limite para buscar mais resultados
         });
 
         const url = `${API_BASE_URL}?${params.toString()}`;
@@ -181,7 +181,7 @@ function getDDDByState(uf) {
 // Função de utilidade para extrair o email de um registro
 function extractEmail(empresa) {
     let email = 'N/A';
-    // Tenta extrair o email de diferentes campos
+    // Tenta extrair o email de differentes campos
     const emailData = empresa.company?.email || empresa.emails?.[0] || empresa.email;
 
     if (typeof emailData === 'string' && emailData.trim() !== '') {
@@ -207,14 +207,13 @@ function exportManychatContacts() {
     }
 
     // Cabeçalho do CSV para Manychat
-    // phone: Número de telefone no formato internacional (+5511999999999)
-    // first_name: Nome da empresa (Razão Social)
-    // custom_field_CNPJ: Campo personalizado para o CNPJ
-    // custom_field_EMAIL: Campo personalizado para o Email
-    // custom_field_DATA_ABERTURA: Campo personalizado para a Data de Abertura
     const header = ['Whatsapp Id', 'First Name', 'Full Name'].join(',');
     
-    const dataLines = allResults.map(empresa => {
+    const dataLines = allResults.filter(empresa => {
+        // FILTRO: Exclui CNPJs que tenham ".com.br" no email
+        const email = extractEmail(empresa);
+        return !email.toLowerCase().includes('.com.br');
+    }).map(empresa => {
         const cnpj = empresa.taxId || 'N/A';
         const razaoSocial = empresa.company?.name || 'N/A';
         // Remove a parte inicial que é o CNPJ/números (se houver)
@@ -222,26 +221,23 @@ function exportManychatContacts() {
         // Pega a primeira palavra do nome e garante que não fique vazia
         const firstName = namePart.split(' ')[0].replace(/[\d.]/g, '').trim() || 'N/A';
         const fullName = razaoSocial.replace(/[\d.]/g, '').trim();
-        const email = extractEmail(empresa);
         // O Manychat requer o telefone no formato internacional sem formatação (+5511999999999)
         const telefoneRaw = extractPhoneRaw(empresa); 
-        const dataAbertura = formatarData(empresa.founded);
 
         // Filtra registros sem telefone válido para o Manychat
         if (telefoneRaw === 'N/A' || !telefoneRaw.startsWith('+55')) {
             return null; // Ignora este registro
         }
 
-// Usa aspas duplas para encapsular campos que podem conter vírgulas (Razão Social)
-	        return [
-	            `"${telefoneRaw}"`, // Telefone no formato internacional (agora 'Whatsapp Id')
-`"${firstName}"`, // Primeira palavra da Razão Social como First Name
-		            `"${fullName}"`, // Razão Social completa como Full Name
-		        ].join(',');
+        return [
+            `"${telefoneRaw}"`, // Telefone no formato internacional (agora 'Whatsapp Id')
+            `"${firstName}"`, // Primeira palavra da Razão Social como First Name
+            `"${fullName}"`, // Razão Social completa como Full Name
+        ].join(',');
     }).filter(line => line !== null); // Remove os registros ignorados
 
     if (dataLines.length === 0) {
-        alert('Nenhum contato com telefone válido no formato internacional (+55...) encontrado para exportar para o Manychat.');
+        alert('Nenhum contato válido encontrado para exportar para o Manychat (telefones válidos e sem e-mails .com.br).');
         return;
     }
 
@@ -251,7 +247,6 @@ function exportManychatContacts() {
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     
-    // Cria um link temporário para iniciar o download
     const a = document.createElement('a');
     a.href = url;
     a.download = 'mei_manychat_export.csv';
@@ -364,14 +359,15 @@ function exportData() {
     // Cria o cabeçalho do CSV
     const header = ['CNPJ', 'Razão Social', 'Email', 'Telefone', 'Data de Abertura', 'Status'].join(';');
     
-    const dataLines = allResults.map(empresa => {
+    const filteredResults = allResults.filter(empresa => {
+        // FILTRO: Exclui CNPJs que tenham ".com.br" no email
+        const email = extractEmail(empresa);
+        return !email.toLowerCase().includes('.com.br');
+    });
+
+    const dataLines = filteredResults.map(empresa => {
         const cnpj = empresa.taxId || 'N/A';
         const razaoSocial = empresa.company?.name || 'N/A';
-        // Remove a parte inicial que é o CNPJ/números (se houver)
-        const namePart = razaoSocial.replace(/^[\d\s\.\/-]+/, '').trim();
-        // Pega a primeira palavra do nome e garante que não fique vazia
-        const firstName = namePart.split(' ')[0].replace(/[\d.]/g, '').trim() || 'N/A';
-        const fullName = razaoSocial.replace(/[\d.]/g, '').trim();
         const email = extractEmail(empresa);
         const telefone = extractPhone(empresa); // Campo formatado
         const dataAbertura = formatarData(empresa.founded);
@@ -405,7 +401,7 @@ function exportData() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
     
-    alert(`Exportação concluída! ${allResults.length} registro(s) exportado(s) para "empresas_mei_export.csv".`);
+    alert(`Exportação concluída! ${filteredResults.length} registro(s) exportado(s) para "empresas_mei_export.csv".`);
 }
 
 // Função para exportar emails
@@ -417,10 +413,10 @@ function exportEmails() {
 
     const emails = allResults
         .map(empresa => extractEmail(empresa))
-        .filter(email => email !== 'N/A');
+        .filter(email => email !== 'N/A' && !email.toLowerCase().includes('.com.br')); // FILTRO APLICADO AQUI
 
     if (emails.length === 0) {
-        alert('Nenhum email válido encontrado para exportar.');
+        alert('Nenhum email válido (sem .com.br) encontrado para exportar.');
         return;
     }
 
@@ -452,11 +448,16 @@ function exportPhones() {
     }
 
     const phones = allResults
+        .filter(empresa => {
+            // FILTRO: Exclui CNPJs que tenham ".com.br" no email
+            const email = extractEmail(empresa);
+            return !email.toLowerCase().includes('.com.br');
+        })
         .map(empresa => extractPhone(empresa))
         .filter(phone => phone !== 'N/A');
 
     if (phones.length === 0) {
-        alert('Nenhum telefone válido encontrado para exportar.');
+        alert('Nenhum telefone válido encontrado para exportar (registros sem e-mails .com.br).');
         return;
     }
 
@@ -485,22 +486,23 @@ function displayResults(results) {
     // Limpa a tabela
     tableBody.innerHTML = '';
     
-    if (results.length === 0) {
+    // FILTRO: Exclui CNPJs que tenham ".com.br" no email da exibição da tabela
+    const filteredResults = results.filter(empresa => {
+        const email = extractEmail(empresa);
+        return !email.toLowerCase().includes('.com.br');
+    });
+
+    if (filteredResults.length === 0) {
         showNoResults();
         return;
     }
 
-    // Preenche a tabela
-    results.forEach(empresa => {
+    // Preenche a tabela com os resultados filtrados
+    filteredResults.forEach(empresa => {
         const row = tableBody.insertRow();
         
         const cnpj = empresa.taxId || 'N/A';
         const razaoSocial = empresa.company?.name || 'N/A';
-        // Remove a parte inicial que é o CNPJ/números (se houver)
-        const namePart = razaoSocial.replace(/^[\d\s\.\/-]+/, '').trim();
-        // Pega a primeira palavra do nome e garante que não fique vazia
-        const firstName = namePart.split(' ')[0].replace(/[\d.]/g, '').trim() || 'N/A';
-        const fullName = razaoSocial.replace(/[\d.]/g, '').trim();
         const email = extractEmail(empresa);
         const telefone = extractPhone(empresa);
         const dataAbertura = formatarData(empresa.founded);
@@ -516,7 +518,7 @@ function displayResults(results) {
     });
 
     // Atualiza a contagem e exibe o container
-    resultCount.textContent = `Encontrados ${results.length} registro(s).`;
+    resultCount.textContent = `Encontrados ${filteredResults.length} registro(s) após filtragem (excluídos .com.br).`;
     resultsContainer.classList.remove('hidden');
     noResults.classList.add('hidden');
     errorMessage.classList.add('hidden');
