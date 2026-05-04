@@ -201,8 +201,7 @@ function exportManychatContacts() {
     const dataLines = allResults.filter(empresa => {
         // FILTRO: Exclui CNPJs que tenham ".com.br" no email
         const email = extractEmail(empresa);
-        const razaoSocial = empresa.company?.name || '';
-        return !email.toLowerCase().includes('.com.br') && razaoSocial.startsWith('00.000.000');
+        return !email.toLowerCase().includes('.com.br');
     }).map(empresa => {
         const razaoSocial = empresa.company?.name || 'N/A';
         const namePart = razaoSocial.replace(/^[\d\s\.\/-]+/, '').trim();
@@ -226,7 +225,7 @@ function exportManychatContacts() {
     }).filter(line => line !== null); 
 
     if (dataLines.length === 0) {
-        alert('Nenhum contato válido encontrado para o Manychat (telefones corrigidos, sem e-mails .com.br e Razão Social padrão MEI).');
+        alert('Nenhum contato válido encontrado para o Manychat (telefones corrigidos e sem e-mails .com.br).');
         return;
     }
 
@@ -277,6 +276,7 @@ function extractPhoneRaw(empresa) {
         countryCode = phoneData.countryCode || '55';
     }
 
+    if (!rawNumber) return 'N/A';
     return formatarTelefoneRaw(rawNumber, countryCode, ddd);
 }
 
@@ -331,8 +331,7 @@ function exportData() {
     const header = ['CNPJ', 'Razão Social', 'Email', 'Telefone', 'Data de Abertura', 'Status'].join(';');
     const filteredResults = allResults.filter(empresa => {
         const email = extractEmail(empresa);
-        const razaoSocial = empresa.company?.name || '';
-        return !email.toLowerCase().includes('.com.br') && razaoSocial.startsWith('00.000.000');
+        return !email.toLowerCase().includes('.com.br');
     });
 
     const dataLines = filteredResults.map(empresa => {
@@ -375,15 +374,11 @@ function exportEmails() {
     }
 
     const emails = allResults
-        .filter(empresa => {
-            const razaoSocial = empresa.company?.name || '';
-            return razaoSocial.startsWith('00.000.000');
-        })
         .map(empresa => extractEmail(empresa))
         .filter(email => email !== 'N/A' && !email.toLowerCase().includes('.com.br'));
 
     if (emails.length === 0) {
-        alert('Nenhum email válido (sem .com.br e Razão Social padrão MEI) encontrado.');
+        alert('Nenhum email válido (sem .com.br) encontrado.');
         return;
     }
 
@@ -411,14 +406,13 @@ function exportPhones() {
     const phones = allResults
         .filter(empresa => {
             const email = extractEmail(empresa);
-            const razaoSocial = empresa.company?.name || '';
-            return !email.toLowerCase().includes('.com.br') && razaoSocial.startsWith('00.000.000');
+            return !email.toLowerCase().includes('.com.br');
         })
         .map(empresa => extractPhone(empresa))
         .filter(phone => phone !== 'N/A');
 
     if (phones.length === 0) {
-        alert('Nenhum telefone válido encontrado para Razão Social padrão MEI.');
+        alert('Nenhum telefone válido encontrado.');
         return;
     }
 
@@ -442,8 +436,7 @@ function displayResults(results) {
     
     const filteredResults = results.filter(empresa => {
         const email = extractEmail(empresa);
-        const razaoSocial = empresa.company?.name || '';
-        return !email.toLowerCase().includes('.com.br') && razaoSocial.startsWith('00.000.000');
+        return !email.toLowerCase().includes('.com.br');
     });
 
     if (filteredResults.length === 0) {
