@@ -57,7 +57,7 @@ async function handleSearch(e) {
             'founded.gte': dataInicioISO,
             'founded.lte': dataFimISO,
             'company.simei.optant.eq': 'true', // Filtro MEI reativado
-            'limit': '350' // Aumentado o limite para buscar mais resultados
+            'limit': '5' // Aumentado o limite para buscar mais resultados
         });
 
         const url = `${API_BASE_URL}?${params.toString()}`;
@@ -189,6 +189,11 @@ function extractEmail(empresa) {
     return email;
 }
 
+// Função para gerar um ID curto aleatório (para evitar spam)
+function generateShortId() {
+    return Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
 // NOVO: Função para exportar contatos formatados para Manychat
 function exportManychatContacts() {
     if (allResults.length === 0) {
@@ -196,7 +201,7 @@ function exportManychatContacts() {
         return;
     }
 
-    const header = ['Whatsapp Id', 'First Name', 'Full Name'].join(',');
+    const header = ['Whatsapp Id', 'First Name', 'Full Name', 'Mensagem'].join(',');
     
     const dataLines = allResults.filter(empresa => {
         // FILTRO: Exclui CNPJs que tenham ".com.br" no email
@@ -204,28 +209,46 @@ function exportManychatContacts() {
         return !email.toLowerCase().includes('.com.br');
     }).map(empresa => {
         const razaoSocial = empresa.company?.name || 'N/A';
-        const namePart = razaoSocial.replace(/^[\d\s\.\/-]+/, '').trim();
+        
+        // Limpar a razão social para remover o CNPJ do início se houver
+        const razaoLimpa = razaoSocial.replace(/^[\d\s\.\/-]+/, '').trim();
+        
+        // Pegar o primeiro nome ou uma versão curta da razão social
+        const namePart = razaoLimpa;
         const firstName = namePart.split(' ')[0].replace(/[\d.]/g, '').trim() || 'N/A';
         const fullName = razaoSocial.replace(/[\d.]/g, '').trim();
         
         // O Manychat requer o telefone no formato internacional (+5511999999999)
         const telefoneRaw = extractPhoneRaw(empresa); 
 
-        // Filtra registros sem telefone válido (precisa ter 13 caracteres: +55 + DDD + 9 dígitos)
-        // Ou 12 caracteres para fixos, mas Manychat foca em Whatsapp (celulares)
+        // Filtra registros sem telefone válido
         if (telefoneRaw === 'N/A' || telefoneRaw.length < 12) {
             return null; 
         }
+
+        // Extrair os primeiros 8 dígitos numéricos da razão social para o link
+        const cnpjDigits = razaoSocial.replace(/\D/g, '').substring(0, 8) || '00000000';
+        
+        // Gerar um ID único curto
+        const uniqueId = generateShortId();
+        
+        // Limitar o tamanho da razão social na mensagem para não estourar o limite de SMS (aprox 160 chars)
+        // Mensagem base tem aprox 100-110 caracteres. Sobram ~50 para a Razão Social.
+        const razaoCurta = razaoLimpa.substring(0, 30);
+
+        // Mensagem personalizada com Razão Social e ID único
+        const mensagem = `Suporte BR: Ola ${razaoCurta}, sua solicitacao esta em analise.\nAcompanhe o Status em:\nhttps://link.com.br/${cnpjDigits}\nPara sair, responda SAIR. Ref:${uniqueId}`;
 
         return [
             `"${telefoneRaw}"`, 
             `"${firstName}"`, 
             `"${fullName}"`, 
+            `"${mensagem}"`,
         ].join(',');
     }).filter(line => line !== null); 
 
     if (dataLines.length === 0) {
-        alert('Nenhum contato válido encontrado para o Manychat (telefones corrigidos e sem e-mails .com.br).');
+        alert('Nenhum contato válido encontrado para o Manychat.');
         return;
     }
 
@@ -276,7 +299,6 @@ function extractPhoneRaw(empresa) {
         countryCode = phoneData.countryCode || '55';
     }
 
-    if (!rawNumber) return 'N/A';
     return formatarTelefoneRaw(rawNumber, countryCode, ddd);
 }
 
