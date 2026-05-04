@@ -240,7 +240,7 @@ function exportManychatContacts() {
         const mensagem = `Suporte BR: Ola ${razaoCurta}, sua solicitacao esta em analise.\nAcompanhe o Status em:\nhttps://link.com.br/${cnpjDigits}\nPara sair, responda SAIR. Ref:${uniqueId}`;
 
         return [
-            `${telefoneRaw}`, 
+            `"${telefoneRaw}"`, 
             `"${firstName}"`, 
             `"${fullName}"`, 
             `"${mensagem}"`,
@@ -339,8 +339,7 @@ function formatarTelefoneRaw(numero, codigoPais = '55', ddd = null) {
     // Validação final: deve ter 11 dígitos (celular) ou 10 (fixo) para ser útil
     if (numLimpo.length < 10) return 'N/A';
 
-    // Formato Infobip: apenas números com código do país (ex: 5511999999999)
-    return `${codigoPais}${numLimpo}`;
+    return `+${codigoPais}${numLimpo}`;
 }
 
 
@@ -550,39 +549,29 @@ function formatarCNPJ(cnpj) {
 
 function formatarTelefone(numero, codigoPais = '55', ddd = null) {
     let numLimpo = numero.replace(/\D/g, '');
-    
-    // Se o número já começa com o código do país e tem o tamanho esperado, assume que está completo
-    if (numLimpo.startsWith(codigoPais) && (numLimpo.length === 12 || numLimpo.length === 13)) {
-        return numLimpo;
-    }
-
-    // Remove código do país se estiver presente mas o tamanho for estranho
-    if (numLimpo.startsWith(codigoPais) && numLimpo.length > 11) {
+    if (numLimpo.startsWith(codigoPais)) {
         numLimpo = numLimpo.substring(codigoPais.length);
     }
-
-    // Adiciona DDD se necessário
     if (ddd) {
         let dddLimpo = ddd.toString().replace(/\D/g, '');
-        if (!numLimpo.startsWith(dddLimpo)) {
+        if (numLimpo.startsWith(dddLimpo)) {
+            numLimpo = numLimpo.substring(dddLimpo.length);
+        }
+        if (numLimpo.length === 8 || numLimpo.length === 9) {
             numLimpo = dddLimpo + numLimpo;
         }
     }
 
-    // Ajuste de 9º dígito para celulares (se tiver 10 dígitos, adiciona o 9)
-    if (numLimpo.length === 10) {
-        const numeroParte = numLimpo.substring(2);
-        if (['6','7','8','9'].includes(numeroParte[0])) {
-            numLimpo = numLimpo.substring(0, 2) + '9' + numeroParte;
-        }
+    if (numLimpo.length === 11) {
+        return `(${numLimpo.substring(0, 2)}) ${numLimpo.substring(2, 7)}-${numLimpo.substring(7)}`;
+    } else if (numLimpo.length === 10) {
+        return `(${numLimpo.substring(0, 2)}) ${numLimpo.substring(2, 6)}-${numLimpo.substring(6)}`;
+    } else if (numLimpo.length === 9) {
+        return `${numLimpo.substring(0, 5)}-${numLimpo.substring(5)}`;
+    } else if (numLimpo.length === 8) {
+        return `${numLimpo.substring(0, 4)}-${numLimpo.substring(4)}`;
     }
-
-    // Retorna no formato Infobip: apenas números com código do país
-    if (numLimpo.length >= 10) {
-        return `${codigoPais}${numLimpo}`;
-    }
-    
-    return numero.replace(/\D/g, '');
+    return numero;
 }
 
 function formatarData(data) {
