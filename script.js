@@ -57,7 +57,7 @@ async function handleSearch(e) {
             'founded.gte': dataInicioISO,
             'founded.lte': dataFimISO,
             'company.simei.optant.eq': 'true', // Filtro MEI reativado
-            'limit': '200' // Aumentado o limite para buscar mais resultados
+            'limit': '100' // Aumentado o limite para buscar mais resultados
         });
 
         const url = `${API_BASE_URL}?${params.toString()}`;
