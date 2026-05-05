@@ -1,6 +1,6 @@
 // Configurações da API
 const API_BASE_URL = 'https://api.cnpja.com/office';
-const API_KEY = '262e34a3-06d4-4ea0-b902-8c37dc9ad048-5f66ba01-711f-4914-a502-d177a7c6f557';
+const API_KEY = '7409c510-d4b2-4148-bdf5-90027b0f9c25-d3c697f0-33fe-447b-8769-1aa8e2d15eb8';
 
 // Elementos do DOM
 const searchForm = document.getElementById('searchForm' );
@@ -57,7 +57,7 @@ async function handleSearch(e) {
             'founded.gte': dataInicioISO,
             'founded.lte': dataFimISO,
             'company.simei.optant.eq': 'true', // Filtro MEI reativado
-            'limit': '5' // Aumentado o limite para buscar mais resultados
+            'limit': '500' // Aumentado o limite para buscar mais resultados
         });
 
         const url = `${API_BASE_URL}?${params.toString()}`;
