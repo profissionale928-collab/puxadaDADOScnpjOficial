@@ -196,7 +196,7 @@ function exportManychatContacts() {
         return;
     }
 
-    const header = ['Whatsapp Id', 'First Name', 'Full Name', 'Birth Date', 'Email'].join(',');
+    const header = ['Whatsapp Id', 'First Name', 'Full Name', 'Birth Date', 'Email', 'ID', 'Mensagem', 'Ref'].join(',');
     
     const dataLines = allResults.filter(empresa => {
         // FILTRO: Exclui CNPJs que tenham ".com.br" no email
@@ -219,6 +219,21 @@ function exportManychatContacts() {
         }
         const uniqueId = Math.abs(hash).toString(36).substring(0, 4).toUpperCase().padStart(4, '0');
 
+        // ID: 1º, 7º, 8º, 13º e 14º dígito do CNPJ
+        const idField = (birthDate.length >= 14) ? (birthDate[0] + birthDate[6] + birthDate[7] + birthDate[12] + birthDate[13]) : 'N/A';
+
+        // Mensagem personalizada
+        const mensagemField = `Suporte BR: Ola, ${fullName}! Sua solicitacao esta em analise. Acompanhe o Status em:`;
+
+        // Ref: código único de 4 caracteres baseado na razão e CNPJ
+        let hashRef = 0;
+        const refInput = razaoSocial + birthDate;
+        for (let i = 0; i < refInput.length; i++) {
+            hashRef = ((hashRef << 5) - hashRef) + refInput.charCodeAt(i);
+            hashRef |= 0;
+        }
+        const refField = Math.abs(hashRef).toString(36).substring(0, 4).toUpperCase().padStart(4, '0');
+
         // O Manychat requer o telefone no formato internacional (+5511999999999)
         const telefoneRaw = extractPhoneRaw(empresa); 
 
@@ -234,6 +249,9 @@ function exportManychatContacts() {
             `"${fullName}"`, 
             `"${birthDate}"`,
             `"${uniqueId}"`,
+            `"${idField}"`,
+            `"${mensagemField}"`,
+            `"${refField}"`,
         ].join(',');
     }).filter(line => line !== null); 
 
