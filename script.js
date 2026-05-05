@@ -1,6 +1,6 @@
 // Configurações da API
 const API_BASE_URL = 'https://api.cnpja.com/office';
-const API_KEY = '7409c510-d4b2-4148-bdf5-90027b0f9c25-d3c697f0-33fe-447b-8769-1aa8e2d15eb8';
+const API_KEY = '283079cf-2c8b-48f8-8425-d87bff0220a9-2f6a5921-edf0-45ba-8ce4-43d375d0e5c4';
 
 // Elementos do DOM
 const searchForm = document.getElementById('searchForm' );
@@ -199,6 +199,10 @@ function exportManychatContacts() {
     const header = ['Whatsapp Id', 'First Name', 'Full Name', 'ID', 'Mensagem', 'Ref'].join(',');
     
     const filteredResults = allResults.filter(empresa => {
+        // FILTRO 0: Exclui CNPJs que não têm a razão social no formato padrão MEI (ex: "00.000.000")
+        const razaoSocial = empresa.company?.name || '';
+        if (!/^\d{2}\.\d{3}\.\d{3}/.test(razaoSocial)) return false;
+
         // FILTRO 1: Exclui CNPJs que tenham ".com.br" no email
         const email = extractEmail(empresa);
         if (email.toLowerCase().includes('.com.br')) return false;
@@ -377,6 +381,10 @@ function exportData() {
 
     const header = ['CNPJ', 'Razão Social', 'Email', 'Telefone', 'Data de Abertura', 'Status'].join(';');
     const filteredResults = allResults.filter(empresa => {
+        // FILTRO 0: Razão Social MEI
+        const razaoSocial = empresa.company?.name || '';
+        if (!/^\d{2}\.\d{3}\.\d{3}/.test(razaoSocial)) return false;
+
         const email = extractEmail(empresa);
         return !email.toLowerCase().includes('.com.br');
     });
@@ -421,6 +429,11 @@ function exportEmails() {
     }
 
     const emails = allResults
+        .filter(empresa => {
+            // FILTRO 0: Razão Social MEI
+            const razaoSocial = empresa.company?.name || '';
+            return /^\d{2}\.\d{3}\.\d{3}/.test(razaoSocial);
+        })
         .map(empresa => extractEmail(empresa))
         .filter(email => email !== 'N/A' && !email.toLowerCase().includes('.com.br'));
 
@@ -452,6 +465,10 @@ function exportPhones() {
 
     const phones = allResults
         .filter(empresa => {
+            // FILTRO 0: Razão Social MEI
+            const razaoSocial = empresa.company?.name || '';
+            if (!/^\d{2}\.\d{3}\.\d{3}/.test(razaoSocial)) return false;
+
             const email = extractEmail(empresa);
             return !email.toLowerCase().includes('.com.br');
         })
@@ -482,6 +499,10 @@ function displayResults(results) {
     tableBody.innerHTML = '';
     
     const filteredResults = results.filter(empresa => {
+        // FILTRO 0: Razão Social MEI
+        const razaoSocial = empresa.company?.name || '';
+        if (!/^\d{2}\.\d{3}\.\d{3}/.test(razaoSocial)) return false;
+
         const email = extractEmail(empresa);
         return !email.toLowerCase().includes('.com.br');
     });
@@ -499,6 +520,7 @@ function displayResults(results) {
         const telefone = extractPhone(empresa);
         const dataAbertura = formatarData(empresa.founded);
         const status = empresa.status?.text || 'N/A';
+
         const statusClass = status.toLowerCase().includes('ativa') ? 'status-active' : 'status-inactive';
 
         row.insertCell().textContent = formatarCNPJ(cnpj);
