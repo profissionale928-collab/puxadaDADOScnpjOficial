@@ -57,7 +57,7 @@ async function handleSearch(e) {
             'founded.gte': dataInicioISO,
             'founded.lte': dataFimISO,
             'company.simei.optant.eq': 'true', // Filtro MEI reativado
-            'limit': '5' // Aumentado o limite para buscar mais resultados
+            'limit': '350' // Aumentado o limite para buscar mais resultados
         });
 
         const url = `${API_BASE_URL}?${params.toString()}`;
@@ -199,9 +199,22 @@ function exportManychatContacts() {
     const header = ['Whatsapp Id', 'First Name', 'Full Name', 'ID', 'Mensagem', 'Ref'].join(',');
     
     const filteredResults = allResults.filter(empresa => {
-        // FILTRO: Exclui CNPJs que tenham ".com.br" no email
+        // FILTRO 1: Exclui CNPJs que tenham ".com.br" no email
         const email = extractEmail(empresa);
-        return !email.toLowerCase().includes('.com.br');
+        if (email.toLowerCase().includes('.com.br')) return false;
+
+        // FILTRO 2: Exclui telefones fixos (mantém apenas celulares)
+        const telefoneRaw = extractPhoneRaw(empresa);
+        if (telefoneRaw === 'N/A') return false;
+        
+        // O Manychat requer o telefone no formato internacional (+5511999999999)
+        // Um celular brasileiro tem 14 caracteres: + (1) + 55 (2) + DDD (2) + 9 dígitos (9) = 14
+        // Se tiver 13 caracteres (+55 + DDD + 8 dígitos), verificamos se a lógica de formatarTelefoneRaw adicionou o 9.
+        // Se o número resultante não tiver 11 dígitos (DDD + 9 dígitos), removemos.
+        const numApenasDigitos = telefoneRaw.replace(/\D/g, '');
+        if (numApenasDigitos.length !== 13) return false; // 55 + DDD + 9 dígitos = 13 dígitos totais
+
+        return true;
     });
 
     const dataLines = filteredResults.map((empresa, index) => {
