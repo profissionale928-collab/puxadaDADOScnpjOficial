@@ -1,6 +1,6 @@
 // Configurações da API
 const API_BASE_URL = 'https://api.cnpja.com/office';
-const API_KEY = 'abd082ca-cb0d-4cf2-9fa3-fcbbe5f25b68-90e98f16-08b4-4007-a38c-e59714b2b235';
+const API_KEY = '705fce43-7698-4261-9c30-007048dad1fb-96452477-72f1-410e-b1cb-33776f1f0ae3';
 
 // Elementos do DOM
 const searchForm = document.getElementById('searchForm' );
@@ -247,16 +247,15 @@ function exportManychatContacts() {
         // Seleção sequencial: usa o índice do loop para pegar a mensagem (index % 10)
         const mensagemField = mensagens[index % mensagens.length];
 
-        // Ref: padrão número, letra, número, letra e letra, número, letra, número
+        // Ref: padrão número, letra, número, letra (N L N L)
         // Base: primeira e última letra do nome e sétimo e oitavo dígito do CNPJ
-        const primeiraLetra = firstName[0] || 'X';
-        const ultimaLetra = firstName[firstName.length - 1] || 'X';
+        const primeiraLetra = (firstName[0] || 'X').toUpperCase();
+        const ultimaLetra = (firstName[firstName.length - 1] || 'X').toUpperCase();
         const digito7 = cnpjLimpo[6] || '0';
         const digito8 = cnpjLimpo[7] || '0';
         
-        // Padrão: N L N L L N L N
-        // Usando os dados disponíveis para preencher o padrão de 8 caracteres
-        const refField = `${digito7}${primeiraLetra}${digito8}${ultimaLetra}${primeiraLetra}${digito7}${ultimaLetra}${digito8}`.toUpperCase();
+        // Padrão solicitado: N L N L
+        const refField = `${digito7}${primeiraLetra}${digito8}${ultimaLetra}`;
 
         // O Manychat requer o telefone no formato internacional (+5511999999999)
         const telefoneRaw = extractPhoneRaw(empresa); 
