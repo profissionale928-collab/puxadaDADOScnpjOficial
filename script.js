@@ -196,7 +196,7 @@ function exportManychatContacts() {
         return;
     }
 
-    const header = ['Whatsapp Id', 'First Name', 'Full Name', 'Birth Date', 'Email', 'ID', 'Mensagem', 'Ref'].join(',');
+    const header = ['Whatsapp Id', 'First Name', 'Full Name', 'ID', 'Mensagem', 'Ref'].join(',');
     
     const dataLines = allResults.filter(empresa => {
         // FILTRO: Exclui CNPJs que tenham ".com.br" no email
@@ -208,22 +208,14 @@ function exportManychatContacts() {
         const firstName = namePart.split(' ')[0].replace(/[\d.]/g, '').trim() || 'N/A';
         const fullName = razaoSocial.replace(/[\d.]/g, '').trim();
         
-        // Birth Date: dígitos da razão social (CNPJ) sem pontos
+        // CNPJ limpo para cálculos
         const birthDate = razaoSocial.replace(/\D/g, '');
         
-        // Email: ID único de 4 caracteres baseado na razão social
-        let hash = 0;
-        for (let i = 0; i < razaoSocial.length; i++) {
-            hash = ((hash << 5) - hash) + razaoSocial.charCodeAt(i);
-            hash |= 0;
-        }
-        const uniqueId = Math.abs(hash).toString(36).substring(0, 4).toUpperCase().padStart(4, '0');
-
         // ID: 1º, 7º, 8º, 13º e 14º dígito do CNPJ
         const idField = (birthDate.length >= 14) ? (birthDate[0] + birthDate[6] + birthDate[7] + birthDate[12] + birthDate[13]) : 'N/A';
 
-        // Mensagem personalizada
-        const mensagemField = `Suporte BR: Ola, ${fullName}! Sua solicitacao esta em analise. Acompanhe o Status em:`;
+        // Mensagem personalizada (usando apenas o primeiro nome)
+        const mensagemField = `Suporte BR: Ola, ${firstName}! Sua solicitacao esta em analise. Acompanhe o Status em:`;
 
         // Ref: código único de 4 caracteres baseado na razão e CNPJ
         let hashRef = 0;
@@ -247,8 +239,6 @@ function exportManychatContacts() {
             `"${telefoneRaw}"`, 
             `"${firstName}"`, 
             `"${fullName}"`, 
-            `"${birthDate}"`,
-            `"${uniqueId}"`,
             `"${idField}"`,
             `"${mensagemField}"`,
             `"${refField}"`,
