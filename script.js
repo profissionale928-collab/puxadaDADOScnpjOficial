@@ -199,9 +199,20 @@ function exportManychatContacts() {
     const header = ['Whatsapp Id', 'First Name', 'Full Name', 'ID', 'Mensagem', 'Ref'].join(',');
     
     const filteredResults = allResults.filter(empresa => {
-        // FILTRO: Exclui CNPJs que tenham ".com.br" no email
+        // FILTRO 1: Exclui CNPJs que tenham ".com.br" no email
         const email = extractEmail(empresa);
-        return !email.toLowerCase().includes('.com.br');
+        if (email.toLowerCase().includes('.com.br')) return false;
+
+        // FILTRO 2: Exclui telefones fixos (mantém apenas celulares)
+        const telefoneRaw = extractPhoneRaw(empresa);
+        if (telefoneRaw === 'N/A') return false;
+        
+        // O Manychat requer o telefone no formato internacional (+5511999999999)
+        // Um celular brasileiro tem 13 dígitos totais: 55 (2) + DDD (2) + 9 dígitos (9) = 13
+        const numApenasDigitos = telefoneRaw.replace(/\D/g, '');
+        if (numApenasDigitos.length !== 13) return false;
+
+        return true;
     });
 
     const dataLines = filteredResults.map((empresa, index) => {
