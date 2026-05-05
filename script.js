@@ -233,17 +233,17 @@ function exportManychatContacts() {
 
         // Mensagem personalizada com variações sequenciais (usando apenas o primeiro nome)
         const mensagens = [
-            `Suporte BR: Ola, ${firstName}! Sua solicitacao esta em analise. Acompanhe o Status em:`,
-            `Suporte BR: Oi, ${firstName}! Recebemos seu pedido e ele ja esta sendo analisado. Veja o Status em:`,
-            `Suporte BR: Tudo bem, ${firstName}? Sua solicitacao entrou em fase de analise. Confira o Status em:`,
-            `Suporte BR: Ola, ${firstName}! Informamos que sua solicitacao esta sob analise. Acompanhe o Status em:`,
-            `Suporte BR: Oi, ${firstName}! Ja estamos analisando sua solicitacao. Verifique o Status em:`,
-            `Suporte BR: Ola, ${firstName}! Passando para avisar que sua solicitacao ja esta com nosso time de analise. Status em:`,
-            `Suporte BR: Oi, ${firstName}! Sua solicitacao foi recebida e a analise ja comecou. Acompanhe aqui:`,
-            `Suporte BR: Como vai, ${firstName}? Informamos que seu pedido segue em processo de analise. Veja o Status:`,
-            `Suporte BR: Ola, ${firstName}! A analise da sua solicitacao ja esta em andamento. Confira o Status em:`,
-            `Suporte BR: Oi, ${firstName}! Confirmamos o recebimento. Sua solicitacao esta sendo analisada agora. Status:`
-        ];
+    `Suporte BR: Ola, ${firstName}! Sua solicitacao esta em analise. Veja em:`,
+    `Suporte BR: Oi, ${firstName}! Seu registro esta em analise. Confira:`,
+    `Suporte BR: Tudo bem, ${firstName}? A Analise esta em andamento. Confira em:`,
+    `Suporte BR: Ola, ${firstName}! Sua solicitacao esta sob analise. Acompanhe:`,
+    `Suporte BR: Como vai, ${firstName}? Acompanhe sua solicitacao. Veja o Status:`,
+    `Suporte BR: Ola, ${firstName}! O seu protocolo esta em analise. Status em:`,
+    `Suporte BR: Oi, ${firstName}! A analise esta em progresso. Acompanhe o Status:`,
+    `Suporte BR: Veja, ${firstName}! O protocolo esta ativo. Veja o Andamento:`,
+    `Suporte BR: Ola, ${firstName}! A analise foi iniciada. Veja o Progresso:`,
+    `Suporte BR: Oi, ${firstName}! O Protocolo esta em andamento. Confira o Status:`
+];
         // Seleção sequencial: usa o índice do loop para pegar a mensagem (index % 10)
         const mensagemField = mensagens[index % mensagens.length];
 
