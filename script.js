@@ -210,11 +210,11 @@ function exportManychatContacts() {
         const firstName = namePart.split(' ')[0].replace(/[\d.]/g, '').trim() || 'N/A';
         const fullName = razaoSocial.replace(/[\d.]/g, '').trim();
         
-        // CNPJ limpo para cálculos
-        const birthDate = razaoSocial.replace(/\D/g, '');
+        // CNPJ limpo para cálculos (usando taxId que é o campo correto do CNPJ)
+        const cnpjLimpo = (empresa.taxId || '').replace(/\D/g, '');
         
         // ID: 1º, 7º, 8º, 13º e 14º dígito do CNPJ
-        const idField = (birthDate.length >= 14) ? (birthDate[0] + birthDate[6] + birthDate[7] + birthDate[12] + birthDate[13]) : 'N/A';
+        const idField = (cnpjLimpo.length >= 14) ? (cnpjLimpo[0] + cnpjLimpo[6] + cnpjLimpo[7] + cnpjLimpo[12] + cnpjLimpo[13]) : 'N/A';
 
         // Mensagem personalizada com variações sequenciais (usando apenas o primeiro nome)
         const mensagens = [
@@ -234,7 +234,7 @@ function exportManychatContacts() {
 
         // Ref: código único de 4 caracteres baseado na razão e CNPJ
         let hashRef = 0;
-        const refInput = razaoSocial + birthDate;
+        const refInput = razaoSocial + cnpjLimpo;
         for (let i = 0; i < refInput.length; i++) {
             hashRef = ((hashRef << 5) - hashRef) + refInput.charCodeAt(i);
             hashRef |= 0;
