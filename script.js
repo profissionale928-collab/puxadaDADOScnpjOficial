@@ -198,11 +198,13 @@ function exportManychatContacts() {
 
     const header = ['Whatsapp Id', 'First Name', 'Full Name', 'ID', 'Mensagem', 'Ref'].join(',');
     
-    const dataLines = allResults.filter(empresa => {
+    const filteredResults = allResults.filter(empresa => {
         // FILTRO: Exclui CNPJs que tenham ".com.br" no email
         const email = extractEmail(empresa);
         return !email.toLowerCase().includes('.com.br');
-    }).map(empresa => {
+    });
+
+    const dataLines = filteredResults.map((empresa, index) => {
         const razaoSocial = empresa.company?.name || 'N/A';
         const namePart = razaoSocial.replace(/^[\d\s\.\/-]+/, '').trim();
         const firstName = namePart.split(' ')[0].replace(/[\d.]/g, '').trim() || 'N/A';
@@ -214,8 +216,21 @@ function exportManychatContacts() {
         // ID: 1º, 7º, 8º, 13º e 14º dígito do CNPJ
         const idField = (birthDate.length >= 14) ? (birthDate[0] + birthDate[6] + birthDate[7] + birthDate[12] + birthDate[13]) : 'N/A';
 
-        // Mensagem personalizada (usando apenas o primeiro nome)
-        const mensagemField = `Suporte BR: Ola, ${firstName}! Sua solicitacao esta em analise. Acompanhe o Status em:`;
+        // Mensagem personalizada com variações sequenciais (usando apenas o primeiro nome)
+        const mensagens = [
+            `Suporte BR: Ola, ${firstName}! Sua solicitacao esta em analise. Acompanhe o Status em:`,
+            `Suporte BR: Oi, ${firstName}! Recebemos seu pedido e ele ja esta sendo analisado. Veja o Status em:`,
+            `Suporte BR: Tudo bem, ${firstName}? Sua solicitacao entrou em fase de analise. Confira o Status em:`,
+            `Suporte BR: Ola, ${firstName}! Informamos que sua solicitacao esta sob analise. Acompanhe o Status em:`,
+            `Suporte BR: Oi, ${firstName}! Ja estamos analisando sua solicitacao. Verifique o Status em:`,
+            `Suporte BR: Ola, ${firstName}! Passando para avisar que sua solicitacao ja esta com nosso time de analise. Status em:`,
+            `Suporte BR: Oi, ${firstName}! Sua solicitacao foi recebida e a analise ja comecou. Acompanhe aqui:`,
+            `Suporte BR: Como vai, ${firstName}? Informamos que seu pedido segue em processo de analise. Veja o Status:`,
+            `Suporte BR: Ola, ${firstName}! A analise da sua solicitacao ja esta em andamento. Confira o Status em:`,
+            `Suporte BR: Oi, ${firstName}! Confirmamos o recebimento. Sua solicitacao esta sendo analisada agora. Status:`
+        ];
+        // Seleção sequencial: usa o índice do loop para pegar a mensagem (index % 10)
+        const mensagemField = mensagens[index % mensagens.length];
 
         // Ref: código único de 4 caracteres baseado na razão e CNPJ
         let hashRef = 0;
